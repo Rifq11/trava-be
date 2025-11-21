@@ -88,15 +88,21 @@ Aplikasi akan berjalan di `http://localhost:8080`.
 ### Profile
 
 - `GET /api/profile` — Get user profile (requires auth)
-- `POST /api/profile/complete` — Complete/update user profile (requires auth)
+- `PUT /api/profile/complete` — Complete/update user profile with photo upload (requires auth)
+  - Supports multipart/form-data for image upload
+  - Fields: `user_photo` (file), `phone`, `address`, `birth_date`, `is_admin`
 
 ### Destinations
 
 - `GET /api/destinations` — List destinations (public)
   - Query params: `category_id` (optional)
 - `GET /api/destinations/:id` — Get destination by ID (public)
-- `POST /api/destinations` — Create destination (requires auth)
-- `PUT /api/destinations/:id` — Update destination
+- `POST /api/destinations` — Create destination with image upload (requires auth)
+  - Supports multipart/form-data for image upload
+  - Fields: `image` (file), `category_id`, `name`, `description`, `location`, `price_per_person`
+- `PUT /api/destinations/:id` — Update destination with image upload
+  - Supports multipart/form-data for image upload
+  - All fields optional (partial update)
 - `DELETE /api/destinations/:id` — Delete destination
 
 ### Bookings
@@ -282,6 +288,217 @@ sequenceDiagram
 
 ---
 
+## File Upload
+
+Aplikasi mendukung upload gambar untuk:
+- **Profile Photo** - User dan Admin profile photos
+- **Destination Images** - Gambar destinasi wisata
+
+### Upload Configuration
+
+- **Max file size**: 10MB
+- **Allowed formats**: JPEG, PNG, WebP
+- **Storage location**: `public/uploads/`
+- **Access URL**: `/uploads/filename.jpg`
+- **Database storage**: URL lengkap disimpan di database (contoh: `/uploads/filename-1234567890.jpg`)
+
+### Upload Helper
+
+Upload helper tersedia di `helper/upload.go`:
+
+- `UploadSingle(fieldName)` - Middleware untuk single file upload
+- `UploadMultiple(fieldName, maxCount)` - Middleware untuk multiple files upload
+- `GetFileUrl(filename)` - Convert filename ke URL
+- `DeleteFile(filename)` - Hapus file dari uploads directory
+
+### Upload Profile Photo
+
+**Endpoint:** `PUT /api/profile/complete`
+
+**Content-Type:** `multipart/form-data`
+
+**Headers:**
+```
+x-user-id: 1
+```
+
+**Form Data:**
+- `user_photo`: [file upload] (optional - bisa upload file baru)
+- `phone`: "081234567890" (optional)
+- `address`: "Jl. Contoh No. 123" (optional)
+- `birth_date`: "1990-01-01" (optional)
+- `is_admin`: false (optional)
+
+**Contoh dengan cURL:**
+```bash
+curl -X PUT http://localhost:8080/api/profile/complete \
+  -H "x-user-id: 1" \
+  -F "user_photo=@/path/to/photo.jpg" \
+  -F "phone=081234567890" \
+  -F "address=Jl. Contoh No. 123" \
+  -F "birth_date=1990-01-01" \
+  -F "is_admin=false"
+```
+
+**Contoh tanpa upload file (pakai URL existing):**
+```bash
+curl -X PUT http://localhost:8080/api/profile/complete \
+  -H "x-user-id: 1" \
+  -F "user_photo=/uploads/existing-photo.jpg" \
+  -F "phone=081234567890"
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Profile completed successfully"
+}
+```
+
+**Note:** File yang di-upload akan disimpan dengan nama unik: `originalname-timestamp-random.ext` dan URL lengkap (`/uploads/filename.jpg`) akan disimpan di database.
+
+### Upload Destination Image
+
+**Endpoint:** `POST /api/destinations` (Create) atau `PUT /api/destinations/:id` (Update)
+
+**Content-Type:** `multipart/form-data`
+
+**Headers:**
+```
+x-user-id: 1
+```
+
+**Form Data (Create):**
+- `image`: [file upload] (optional - bisa upload file baru)
+- `category_id`: 1 (required)
+- `name`: "Bali Beach" (required)
+- `description`: "Beautiful beach in Bali" (optional)
+- `location`: "Bali, Indonesia" (required)
+- `price_per_person`: 500000 (required)
+
+**Contoh Create dengan cURL:**
+```bash
+curl -X POST http://localhost:8080/api/destinations \
+  -H "x-user-id: 1" \
+  -F "image=@/path/to/destination.jpg" \
+  -F "category_id=1" \
+  -F "name=Bali Beach" \
+  -F "description=Beautiful beach in Bali" \
+  -F "location=Bali, Indonesia" \
+  -F "price_per_person=500000"
+```
+
+**Form Data (Update):**
+- `image`: [file upload] (optional - bisa upload file baru atau pakai URL existing)
+- `category_id`: 1 (optional)
+- `name`: "Updated Name" (optional)
+- `description`: "Updated description" (optional)
+- `location`: "Updated location" (optional)
+- `price_per_person`: 600000 (optional)
+
+**Contoh Update dengan cURL:**
+```bash
+curl -X PUT http://localhost:8080/api/destinations/1 \
+  -F "image=@/path/to/new-image.jpg" \
+  -F "name=Updated Destination Name"
+```
+
+**Contoh Update tanpa upload (pakai URL existing):**
+```bash
+curl -X PUT http://localhost:8080/api/destinations/1 \
+  -F "image=/uploads/existing-image.jpg" \
+  -F "name=Updated Name"
+```
+
+**Response (Create):**
+```json
+{
+  "status": "success",
+  "message": "Destination created successfully",
+  "data": {
+    "id": 1
+  }
+}
+```
+
+**Response (Update):**
+```json
+{
+  "status": "success",
+  "message": "Destination updated successfully"
+}
+```
+
+### Mengakses File yang Di-upload
+
+File yang sudah di-upload dapat diakses melalui URL:
+
+```
+GET http://localhost:8080/uploads/filename-1234567890.jpg
+```
+
+File akan otomatis di-serve sebagai static file dari `public/uploads/` directory.
+
+### Response Format untuk Image URL
+
+Ketika mengambil data dari API, field image akan berisi URL lengkap:
+
+**Get Profile:**
+```json
+{
+  "status": "success",
+  "data": {
+    "user": { ... },
+    "profile": {
+      "user_photo": "/uploads/profile-1234567890.jpg"
+    }
+  }
+}
+```
+
+**Get Destinations:**
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": 1,
+      "name": "Bali Beach",
+      "image": "/uploads/destination-1234567890.jpg"
+    }
+  ]
+}
+```
+
+### Error Handling
+
+**File terlalu besar:**
+```json
+{
+  "status": "error",
+  "message": "File size exceeds maximum limit of 10MB"
+}
+```
+
+**Format file tidak didukung:**
+```json
+{
+  "status": "error",
+  "message": "Invalid file type. Only JPEG, PNG, and WebP images are allowed."
+}
+```
+
+**Gagal menyimpan file:**
+```json
+{
+  "status": "error",
+  "message": "Failed to save file"
+}
+```
+
+---
+
 ## Authentication & Authorization
 
 ### Middleware
@@ -393,6 +610,8 @@ Trava-be/
 │   ├── review.go          # Review controller
 │   ├── user.go            # User controller
 │   └── activity.go        # Activity controller
+├── Helper/
+│   └── upload.go          # File upload utilities
 ├── Middleware/
 │   └── auth.go            # Authentication & authorization middleware
 ├── Models/
@@ -415,7 +634,10 @@ Trava-be/
 │   ├── user.go            # User routes
 │   ├── activity.go        # Activity routes
 │   └── routes.go          # Main routes setup
-├── main.go                # Entry point
+├── server/
+│   └── main.go            # Entry point
+├── public/
+│   └── uploads/           # Uploaded files directory
 ├── go.mod                 # Go module dependencies
 ├── go.sum                 # Go module checksums
 └── README.md              # This file
@@ -506,6 +728,30 @@ curl -X POST http://localhost:8080/api/bookings \
   }'
 ```
 
+### Example: Complete Profile with Photo Upload
+
+```bash
+curl -X PUT http://localhost:8080/api/profile/complete \
+  -H "x-user-id: 1" \
+  -F "user_photo=@/path/to/photo.jpg" \
+  -F "phone=081234567890" \
+  -F "address=Jl. Contoh No. 123" \
+  -F "birth_date=1990-01-01"
+```
+
+### Example: Create Destination with Image Upload
+
+```bash
+curl -X POST http://localhost:8080/api/destinations \
+  -H "x-user-id: 1" \
+  -F "image=@/path/to/destination.jpg" \
+  -F "category_id=1" \
+  -F "name=Bali Beach" \
+  -F "description=Beautiful beach in Bali" \
+  -F "location=Bali, Indonesia" \
+  -F "price_per_person=500000"
+```
+
 ---
 
 ## Notes
@@ -515,6 +761,10 @@ curl -X POST http://localhost:8080/api/bookings \
 - Default booking status: 1 (pending)
 - Default user role: 2 (user)
 - Admin role: 1 (admin)
+- Upload directory (`public/uploads/`) akan otomatis dibuat saat aplikasi pertama kali dijalankan
+- File yang di-upload akan disimpan dengan nama unik untuk menghindari konflik
+- URL lengkap (contoh: `/uploads/filename.jpg`) disimpan di database, bukan hanya filename
+- File dapat diakses langsung melalui URL: `http://localhost:8080/uploads/filename.jpg`
 
 ---
 
