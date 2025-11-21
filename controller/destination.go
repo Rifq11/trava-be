@@ -2,7 +2,6 @@ package controller
 
 import (
 	"net/http"
-	"strconv"
 
 	config "github.com/Rifq11/Trava-be/config"
 	helper "github.com/Rifq11/Trava-be/helper"
@@ -12,23 +11,9 @@ import (
 )
 
 func GetDestinations(c *gin.Context) {
-	categoryIDStr := c.Query("category_id")
 	var destinations []models.DestinationResponse
 
-	query := config.DB.
-		Table("destinations").
-		Select("destinations.id, destinations.name, destinations.description, destinations.location, destinations.price_per_person, destinations.image, destinations.category_id, destinations.created_by, destination_categories.name as category_name").
-		Joins("INNER JOIN destination_categories ON destinations.category_id = destination_categories.id").
-		Order("destinations.id DESC")
-
-	if categoryIDStr != "" {
-		categoryID, err := strconv.Atoi(categoryIDStr)
-		if err == nil {
-			query = query.Where("destinations.category_id = ?", categoryID)
-		}
-	}
-
-	result := query.Scan(&destinations)
+	result := config.DB.Find(&destinations)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": result.Error.Error(),
@@ -45,13 +30,7 @@ func GetDestinationById(c *gin.Context) {
 	id := c.Param("id")
 	var destination models.DestinationDetailResponse
 
-	result := config.DB.
-		Table("destinations").
-		Select("destinations.id, destinations.name, destinations.description, destinations.location, destinations.price_per_person, destinations.image, destinations.category_id, destinations.created_by, destination_categories.name as category_name, users.full_name as creator_name").
-		Joins("INNER JOIN destination_categories ON destinations.category_id = destination_categories.id").
-		Joins("INNER JOIN users ON destinations.created_by = users.id").
-		Where("destinations.id = ?", id).
-		First(&destination)
+	result := config.DB.First(&destination, id)
 
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
@@ -83,69 +62,38 @@ func CreateDestination(c *gin.Context) {
 
 	userIdInt := userID.(int)
 
+	var req models.CreateDestinationRequest
+	if err := c.ShouldBind(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Status:  "error",
+			Message: "Validation error: " + err.Error(),
+		})
+		return
+	}
+
 	var image string
-	if uploadedFile, exists := c.Get("uploaded_file"); exists {
-		if filename, ok := uploadedFile.(string); ok {
-			// get url
+	if uploadedFile, ok := c.Get("uploaded_file"); ok {
+		if filename, ok2 := uploadedFile.(string); ok2 {
 			image = helper.GetFileUrl(filename)
 		}
 	}
 	if image == "" {
-		image = c.PostForm("image")
-	}
-
-	categoryIDStr := c.PostForm("category_id")
-	if categoryIDStr == "" {
-		categoryIDStr = c.PostForm("categoryId")
-	}
-	name := c.PostForm("name")
-	description := c.PostForm("description")
-	location := c.PostForm("location")
-	pricePerPersonStr := c.PostForm("price_per_person")
-	if pricePerPersonStr == "" {
-		pricePerPersonStr = c.PostForm("pricePerPerson")
-	}
-
-	if categoryIDStr == "" || name == "" || location == "" || pricePerPersonStr == "" {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Status:  "error",
-			Message: "Category ID, name, location, and price per person are required",
-		})
-		return
-	}
-
-	categoryID, err := strconv.Atoi(categoryIDStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Status:  "error",
-			Message: "Invalid category ID",
-		})
-		return
-	}
-
-	pricePerPerson, err := strconv.Atoi(pricePerPersonStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Status:  "error",
-			Message: "Invalid price per person",
-		})
-		return
+		image = req.Image
 	}
 
 	destination := models.Destination{
-		CategoryID:     categoryID,
+		CategoryID:     req.CategoryID,
 		CreatedBy:      userIdInt,
-		Name:           name,
-		Description:    description,
-		Location:       location,
-		PricePerPerson: pricePerPerson,
+		Name:           req.Name,
+		Description:    req.Description,
+		Location:       req.Location,
+		PricePerPerson: req.PricePerPerson,
 		Image:          image,
 	}
 
-	result := config.DB.Create(&destination)
-	if result.Error != nil {
+	if err := config.DB.Create(&destination).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": result.Error.Error(),
+			"error": err.Error(),
 		})
 		return
 	}
@@ -158,75 +106,52 @@ func CreateDestination(c *gin.Context) {
 
 func UpdateDestination(c *gin.Context) {
 	id := c.Param("id")
-	var destination models.Destination
 
-	result := config.DB.First(&destination, id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Destination Not Found",
-			})
+	var destination models.Destination
+	if err := config.DB.First(&destination, id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Destination not found"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": result.Error.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	var image string
-	if uploadedFile, exists := c.Get("uploaded_file"); exists {
-		if filename, ok := uploadedFile.(string); ok {
-			// get url
-			image = helper.GetFileUrl(filename)
-		}
-	}
-	if image == "" {
-		image = c.PostForm("image")
+	var req models.UpdateDestinationRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
-	categoryIDStr := c.PostForm("category_id")
-	if categoryIDStr == "" {
-		categoryIDStr = c.PostForm("categoryId")
-	}
-	name := c.PostForm("name")
-	description := c.PostForm("description")
-	location := c.PostForm("location")
-	pricePerPersonStr := c.PostForm("price_per_person")
-	if pricePerPersonStr == "" {
-		pricePerPersonStr = c.PostForm("pricePerPerson")
-	}
-
-	if categoryIDStr != "" {
-		categoryID, err := strconv.Atoi(categoryIDStr)
-		if err == nil {
-			destination.CategoryID = categoryID
+	if uploaded, exists := c.Get("uploaded_file"); exists {
+		if filename, ok := uploaded.(string); ok {
+			url := helper.GetFileUrl(filename)
+			req.Image = &url
 		}
 	}
-	if name != "" {
-		destination.Name = name
+
+	updates := map[string]interface{}{}
+	if req.CategoryID != nil {
+		updates["category_id"] = *req.CategoryID
 	}
-	if description != "" {
-		destination.Description = description
+	if req.Name != nil {
+		updates["name"] = *req.Name
 	}
-	if location != "" {
-		destination.Location = location
+	if req.Description != nil {
+		updates["description"] = *req.Description
 	}
-	if pricePerPersonStr != "" {
-		pricePerPerson, err := strconv.Atoi(pricePerPersonStr)
-		if err == nil {
-			destination.PricePerPerson = pricePerPerson
-		}
+	if req.Location != nil {
+		updates["location"] = *req.Location
 	}
-	if image != "" {
-		destination.Image = image
+	if req.PricePerPerson != nil {
+		updates["price_per_person"] = *req.PricePerPerson
+	}
+	if req.Image != nil {
+		updates["image"] = *req.Image
 	}
 
-	result = config.DB.Save(&destination)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": result.Error.Error(),
-		})
+	if err := config.DB.Model(&destination).Updates(updates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
