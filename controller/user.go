@@ -2,7 +2,6 @@ package controller
 
 import (
 	"net/http"
-	"strconv"
 	"strings"
 
 	config "github.com/Rifq11/Trava-be/config"
@@ -15,15 +14,16 @@ import (
 func GetAllUsers(c *gin.Context) {
 	var userResponses []models.UserResponse
 
-	if err := config.DB.
+	result := config.DB.
 		Table("users").
 		Select("users.id, users.full_name, users.email, users.role_id, roles.name as role_name").
 		Joins("INNER JOIN roles ON users.role_id = roles.id").
 		Order("users.id").
-		Scan(&userResponses).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to get users",
+		Scan(&userResponses)
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
@@ -32,46 +32,37 @@ func GetAllUsers(c *gin.Context) {
 		userResponses = []models.UserResponse{}
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Status: "success",
-		Data:   userResponses,
+	c.JSON(http.StatusOK, gin.H{
+		"data": userResponses,
 	})
 }
 
 func GetUserById(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to get user",
-		})
-		return
-	}
+	id := c.Param("id")
 
 	var userResponse models.UserResponse
-	if err := config.DB.
+	result := config.DB.
 		Table("users").
 		Select("users.id, users.full_name, users.email, users.role_id, roles.name as role_name").
 		Joins("INNER JOIN roles ON users.role_id = roles.id").
 		Where("users.id = ?", id).
-		First(&userResponse).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{
-				Status:  "error",
-				Message: "User not found",
+		First(&userResponse)
+
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "User Not Found",
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to get user",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Status: "success",
-		Data:   userResponse,
+	c.JSON(http.StatusOK, gin.H{
+		"data": userResponse,
 	})
 }
 
@@ -86,10 +77,10 @@ func CreateUser(c *gin.Context) {
 	}
 
 	var existingUser models.User
-	if err := config.DB.Where("email = ?", req.Email).First(&existingUser).Error; err == nil {
-		c.JSON(http.StatusConflict, models.ErrorResponse{
-			Status:  "error",
-			Message: "User with this email already exists",
+	result := config.DB.Where("email = ?", req.Email).First(&existingUser)
+	if result.Error == nil {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": "User with this email already exists",
 		})
 		return
 	}
@@ -116,10 +107,10 @@ func CreateUser(c *gin.Context) {
 		RoleID:   roleID,
 	}
 
-	if err := config.DB.Create(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to create user",
+	result = config.DB.Create(&user)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
@@ -136,54 +127,44 @@ func CreateUser(c *gin.Context) {
 		RoleName: role.Name,
 	}
 
-	c.JSON(http.StatusCreated, models.SuccessResponse{
-		Status:  "success",
+	c.JSON(http.StatusOK, models.SuccessResponse{
 		Message: "User created successfully",
 		Data:    userResponse,
 	})
 }
 
 func UpdateUser(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to update user",
-		})
-		return
-	}
-
+	id := c.Param("id")
 	var req models.UpdateUserRequest
+
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to update user",
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
 		})
 		return
 	}
 
 	var user models.User
-	if err := config.DB.First(&user, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{
-				Status:  "error",
-				Message: "User not found",
+	result := config.DB.First(&user, id)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "User Not Found",
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to update user",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
 	if req.Email != nil && *req.Email != user.Email {
 		var existingUser models.User
-		if err := config.DB.Where("email = ?", *req.Email).First(&existingUser).Error; err == nil {
-			c.JSON(http.StatusConflict, models.ErrorResponse{
-				Status:  "error",
-				Message: "User with this email already exists",
+		result := config.DB.Where("email = ?", *req.Email).First(&existingUser)
+		if result.Error == nil {
+			c.JSON(http.StatusConflict, gin.H{
+				"error": "User with this email already exists",
 			})
 			return
 		}
@@ -208,64 +189,54 @@ func UpdateUser(c *gin.Context) {
 		user.RoleID = *req.RoleID
 	}
 
-	if err := config.DB.Save(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to update user",
+	result = config.DB.Save(&user)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, models.SuccessResponse{
-		Status:  "success",
 		Message: "User updated successfully",
+		Data:    user,
 	})
 }
 
 func DeleteUser(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to delete user",
-		})
-		return
-	}
-
+	id := c.Param("id")
 	var user models.User
-	if err := config.DB.First(&user, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{
-				Status:  "error",
-				Message: "User not found",
+
+	result := config.DB.First(&user, id)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "User Not Found",
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to delete user",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
-	if err := config.DB.Delete(&user).Error; err != nil {
-		errStr := err.Error()
+	result = config.DB.Delete(&user)
+	if result.Error != nil {
+		errStr := result.Error.Error()
 		if strings.Contains(errStr, "1451") || strings.Contains(errStr, "foreign key constraint") {
-			c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-				Status:  "error",
-				Message: "Cannot delete user: user is referenced by other records",
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Cannot delete user: user is referenced by other records",
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to delete user",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Status:  "success",
-		Message: "User deleted successfully",
+	c.JSON(http.StatusOK, gin.H{
+		"message": "User deleted successfully",
 	})
 }

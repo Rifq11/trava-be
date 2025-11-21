@@ -31,33 +31,31 @@ func CreateBooking(c *gin.Context) {
 	userIdInt := userID.(int)
 
 	var destination models.Destination
-	if err := config.DB.First(&destination, req.DestinationID).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{
-				Status:  "error",
-				Message: "Destination or transportation not found",
+	result := config.DB.First(&destination, req.DestinationID)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Destination or transportation not found",
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to create booking",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
 	var transportation models.Transportation
-	if err := config.DB.First(&transportation, req.TransportationID).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{
-				Status:  "error",
-				Message: "Destination or transportation not found",
+	result = config.DB.First(&transportation, req.TransportationID)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Destination or transportation not found",
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to create booking",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
@@ -80,18 +78,17 @@ func CreateBooking(c *gin.Context) {
 		TotalPrice:       totalPrice,
 	}
 
-	if err := config.DB.Create(&booking).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to create booking",
+	result = config.DB.Create(&booking)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusCreated, models.SuccessResponse{
-		Status:  "success",
+	c.JSON(http.StatusOK, models.SuccessResponse{
 		Message: "Booking created successfully",
-		Data:    map[string]interface{}{"booking_id": booking.ID, "total_price": booking.TotalPrice},
+		Data:    booking,
 	})
 }
 
@@ -108,7 +105,7 @@ func GetMyBookings(c *gin.Context) {
 	userIdInt := userID.(int)
 
 	var bookings []models.BookingResponse
-	if err := config.DB.
+	result := config.DB.
 		Table("bookings").
 		Select("bookings.id as booking_id, destinations.name as destination_name, destinations.location, bookings.people_count, bookings.start_date, bookings.end_date, bookings.total_price, booking_status.name as status_name, payment_methods.name as payment_method_name").
 		Joins("INNER JOIN destinations ON bookings.destination_id = destinations.id").
@@ -116,17 +113,17 @@ func GetMyBookings(c *gin.Context) {
 		Joins("INNER JOIN payment_methods ON bookings.payment_method_id = payment_methods.id").
 		Where("bookings.user_id = ?", userIdInt).
 		Order("bookings.id DESC").
-		Scan(&bookings).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to get bookings",
+		Scan(&bookings)
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Status: "success",
-		Data:   bookings,
+	c.JSON(http.StatusOK, gin.H{
+		"data": bookings,
 	})
 }
 

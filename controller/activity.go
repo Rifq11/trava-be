@@ -35,18 +35,17 @@ func LogActivity(c *gin.Context) {
 		ActivityType:  req.ActivityType,
 	}
 
-	if err := config.DB.Table("user_activity_log").Create(&activityLog).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to log activity: " + err.Error(),
+	result := config.DB.Table("user_activity_log").Create(&activityLog)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusCreated, models.SuccessResponse{
-		Status:  "success",
+	c.JSON(http.StatusOK, models.SuccessResponse{
 		Message: "Activity logged successfully",
-		Data:    map[string]interface{}{"activity_id": activityLog.ID},
+		Data:    activityLog,
 	})
 }
 

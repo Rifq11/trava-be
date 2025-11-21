@@ -2,7 +2,6 @@ package controller
 
 import (
 	"net/http"
-	"strconv"
 
 	config "github.com/Rifq11/Trava-be/config"
 	models "github.com/Rifq11/Trava-be/models"
@@ -40,17 +39,16 @@ func CreateReview(c *gin.Context) {
 	userIdInt := userID.(int)
 
 	var booking models.Booking
-	if err := config.DB.First(&booking, req.BookingID).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{
-				Status:  "error",
-				Message: "Booking not found",
+	result := config.DB.First(&booking, req.BookingID)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Booking Not Found",
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to create review",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
@@ -70,50 +68,42 @@ func CreateReview(c *gin.Context) {
 		ReviewText: req.ReviewText,
 	}
 
-	if err := config.DB.Create(&review).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to create review",
+	result = config.DB.Create(&review)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusCreated, models.SuccessResponse{
-		Status:  "success",
+	c.JSON(http.StatusOK, models.SuccessResponse{
 		Message: "Review created successfully",
-		Data:    map[string]interface{}{"review_id": review.ID},
+		Data:    review,
 	})
 }
 
 func GetDestinationReviews(c *gin.Context) {
-	destinationID, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Status:  "error",
-			Message: "Invalid destination ID",
-		})
-		return
-	}
+	destinationID := c.Param("id")
 
 	var reviews []models.ReviewResponse
-	if err := config.DB.
+	result := config.DB.
 		Table("reviews").
 		Select("reviews.id, reviews.booking_id, reviews.user_id, users.full_name as user_name, reviews.rating, reviews.review_text").
 		Joins("INNER JOIN bookings ON reviews.booking_id = bookings.id").
 		Joins("INNER JOIN users ON reviews.user_id = users.id").
 		Where("bookings.destination_id = ?", destinationID).
 		Order("reviews.id DESC").
-		Scan(&reviews).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to get reviews",
+		Scan(&reviews)
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Status: "success",
-		Data:   reviews,
+	c.JSON(http.StatusOK, gin.H{
+		"data": reviews,
 	})
 }
 

@@ -26,10 +26,10 @@ func Register(c *gin.Context) {
 	}
 
 	var existingUser models.User
-	if err := config.DB.Where("email = ?", req.Email).First(&existingUser).Error; err == nil {
-		c.JSON(http.StatusConflict, models.ErrorResponse{
-			Status:  "error",
-			Message: "User with this email already exists",
+	result := config.DB.Where("email = ?", req.Email).First(&existingUser)
+	if result.Error == nil {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": "User with this email already exists",
 		})
 		return
 	}
@@ -51,10 +51,10 @@ func Register(c *gin.Context) {
 		RoleID:   roleID,
 	}
 
-	if err := config.DB.Create(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to register user",
+	result = config.DB.Create(&user)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
@@ -65,8 +65,7 @@ func Register(c *gin.Context) {
 		FullName: user.FullName,
 	}
 
-	c.JSON(http.StatusCreated, models.SuccessResponse{
-		Status:  "success",
+	c.JSON(http.StatusOK, models.SuccessResponse{
 		Message: "User registered successfully",
 		Data:    registerResponse,
 	})
@@ -83,17 +82,16 @@ func Login(c *gin.Context) {
 	}
 
 	var user models.User
-	if err := config.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusUnauthorized, models.ErrorResponse{
-				Status:  "error",
-				Message: "Invalid email or password",
+	result := config.DB.Where("email = ?", req.Email).First(&user)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Invalid email or password",
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to login",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
@@ -107,10 +105,10 @@ func Login(c *gin.Context) {
 	}
 
 	var role models.Role
-	if err := config.DB.First(&role, user.RoleID).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to login",
+	result = config.DB.First(&role, user.RoleID)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
@@ -124,7 +122,6 @@ func Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, models.SuccessResponse{
-		Status:  "success",
 		Message: "Login successful",
 		Data:    loginResponse,
 	})
@@ -149,30 +146,28 @@ func UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	// Check if user exists
 	var user models.User
 	userIdInt := userID.(int)
-	if err := config.DB.First(&user, userIdInt).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{
-				Status:  "error",
-				Message: "User not found",
+	result := config.DB.First(&user, userIdInt)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "User Not Found",
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to update profile",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
 	if req.Email != nil && *req.Email != user.Email {
 		var existingUser models.User
-		if err := config.DB.Where("email = ?", *req.Email).First(&existingUser).Error; err == nil {
-			c.JSON(http.StatusConflict, models.ErrorResponse{
-				Status:  "error",
-				Message: "User with this email already exists",
+		result := config.DB.Where("email = ?", *req.Email).First(&existingUser)
+		if result.Error == nil {
+			c.JSON(http.StatusConflict, gin.H{
+				"error": "User with this email already exists",
 			})
 			return
 		}
@@ -194,17 +189,18 @@ func UpdateProfile(c *gin.Context) {
 		user.Password = string(hashedPassword)
 	}
 
-	if err := config.DB.Save(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to update profile",
+	result = config.DB.Save(&user)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
 	var userProfile models.UserProfile
-	if err := config.DB.Where("user_id = ?", userIdInt).First(&userProfile).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+	result = config.DB.Where("user_id = ?", userIdInt).First(&userProfile)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
 			newProfile := models.UserProfile{
 				UserID:      userIdInt,
 				Phone:       "",
@@ -221,7 +217,18 @@ func UpdateProfile(c *gin.Context) {
 			if req.BirthDate != nil {
 				newProfile.BirthDate = *req.BirthDate
 			}
-			config.DB.Create(&newProfile)
+			result = config.DB.Create(&newProfile)
+			if result.Error != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": result.Error.Error(),
+				})
+				return
+			}
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": result.Error.Error(),
+			})
+			return
 		}
 	} else {
 		if req.Phone != nil {
@@ -233,11 +240,16 @@ func UpdateProfile(c *gin.Context) {
 		if req.BirthDate != nil {
 			userProfile.BirthDate = *req.BirthDate
 		}
-		config.DB.Save(&userProfile)
+		result = config.DB.Save(&userProfile)
+		if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": result.Error.Error(),
+			})
+			return
+		}
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Status:  "success",
-		Message: "Profile updated successfully",
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Profile updated successfully",
 	})
 }

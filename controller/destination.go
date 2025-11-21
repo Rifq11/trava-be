@@ -28,55 +28,46 @@ func GetDestinations(c *gin.Context) {
 		}
 	}
 
-	if err := query.Scan(&destinations).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to get destinations",
+	result := query.Scan(&destinations)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Status: "success",
-		Data:   destinations,
+	c.JSON(http.StatusOK, gin.H{
+		"data": destinations,
 	})
 }
 
 func GetDestinationById(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Status:  "error",
-			Message: "Invalid destination ID",
-		})
-		return
-	}
-
+	id := c.Param("id")
 	var destination models.DestinationDetailResponse
-	if err := config.DB.
+
+	result := config.DB.
 		Table("destinations").
 		Select("destinations.id, destinations.name, destinations.description, destinations.location, destinations.price_per_person, destinations.image, destinations.category_id, destinations.created_by, destination_categories.name as category_name, users.full_name as creator_name").
 		Joins("INNER JOIN destination_categories ON destinations.category_id = destination_categories.id").
 		Joins("INNER JOIN users ON destinations.created_by = users.id").
 		Where("destinations.id = ?", id).
-		First(&destination).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{
-				Status:  "error",
-				Message: "Destination not found",
+		First(&destination)
+
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Destination Not Found",
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to get destination",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Status: "success",
-		Data:   destination,
+	c.JSON(http.StatusOK, gin.H{
+		"data": destination,
 	})
 }
 
@@ -151,43 +142,34 @@ func CreateDestination(c *gin.Context) {
 		Image:          image,
 	}
 
-	if err := config.DB.Create(&destination).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to create destination",
+	result := config.DB.Create(&destination)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusCreated, models.SuccessResponse{
-		Status:  "success",
+	c.JSON(http.StatusOK, models.SuccessResponse{
 		Message: "Destination created successfully",
-		Data:    map[string]interface{}{"id": destination.ID},
+		Data:    destination,
 	})
 }
 
 func UpdateDestination(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Status:  "error",
-			Message: "Invalid destination ID",
-		})
-		return
-	}
-
+	id := c.Param("id")
 	var destination models.Destination
-	if err := config.DB.First(&destination, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{
-				Status:  "error",
-				Message: "Destination not found",
+
+	result := config.DB.First(&destination, id)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Destination Not Found",
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to update destination",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
@@ -240,56 +222,47 @@ func UpdateDestination(c *gin.Context) {
 		destination.Image = image
 	}
 
-	if err := config.DB.Save(&destination).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to update destination",
+	result = config.DB.Save(&destination)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, models.SuccessResponse{
-		Status:  "success",
 		Message: "Destination updated successfully",
+		Data:    destination,
 	})
 }
 
 func DeleteDestination(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Status:  "error",
-			Message: "Invalid destination ID",
-		})
-		return
-	}
-
+	id := c.Param("id")
 	var destination models.Destination
-	if err := config.DB.First(&destination, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{
-				Status:  "error",
-				Message: "Destination not found",
+
+	result := config.DB.First(&destination, id)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Destination Not Found",
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to delete destination",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
-	if err := config.DB.Delete(&destination).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to delete destination",
+	result = config.DB.Delete(&destination)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Status:  "success",
-		Message: "Destination deleted successfully",
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Destination deleted successfully",
 	})
 }
