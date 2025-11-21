@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	config "github.com/Rifq11/Trava-be/Config"
-	models "github.com/Rifq11/Trava-be/Models"
+	config "github.com/Rifq11/Trava-be/config"
+	models "github.com/Rifq11/Trava-be/models"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"

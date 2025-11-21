@@ -1,6 +1,6 @@
 package models
 
-import "../Models/time"
+import "time"
 
 type ActivityLog struct {
 	ID            int       `gorm:"primaryKey;autoIncrement" json:"id"`

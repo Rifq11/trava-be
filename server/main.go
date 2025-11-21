@@ -1,8 +1,8 @@
 package main
 
 import (
-	config "github.com/Rifq11/Trava-be/Config"
-	routes "github.com/Rifq11/Trava-be/Routes"
+	config "github.com/Rifq11/Trava-be/config"
+	routes "github.com/Rifq11/Trava-be/routes"
 	"github.com/gin-gonic/gin"
 )
 

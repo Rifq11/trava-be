@@ -1,8 +1,8 @@
 package routes
 
 import (
-	controller "github.com/Rifq11/Trava-be/Controller"
-	middleware "github.com/Rifq11/Trava-be/Middleware"
+	controller "github.com/Rifq11/Trava-be/controller"
+	middleware "github.com/Rifq11/Trava-be/middleware"
 	"github.com/gin-gonic/gin"
 )
 

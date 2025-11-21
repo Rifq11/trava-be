@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	config "github.com/Rifq11/Trava-be/Config"
-	models "github.com/Rifq11/Trava-be/Models"
+	config "github.com/Rifq11/Trava-be/config"
+	models "github.com/Rifq11/Trava-be/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )

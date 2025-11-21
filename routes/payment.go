@@ -1,7 +1,7 @@
 package routes
 
 import (
-	controller "github.com/Rifq11/Trava-be/Controller"
+	controller "github.com/Rifq11/Trava-be/controller"
 	"github.com/gin-gonic/gin"
 )
 
