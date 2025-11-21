@@ -13,10 +13,7 @@ import (
 func Register(c *gin.Context) {
 	var req models.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Status:  "error",
-			Message: "Full name, email, and password are required",
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -37,10 +34,7 @@ func Register(c *gin.Context) {
 	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to register user",
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
 	}
 
@@ -53,31 +47,24 @@ func Register(c *gin.Context) {
 
 	result = config.DB.Create(&user)
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": result.Error.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return
 	}
 
-	registerResponse := models.RegisterResponse{
-		UserID:   user.ID,
-		Email:    user.Email,
-		FullName: user.FullName,
-	}
-
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Message: "User registered successfully",
-		Data:    registerResponse,
+	c.JSON(http.StatusOK, gin.H{
+		"message": "User registered successfully",
+		"data": models.RegisterResponse{
+			UserID:   user.ID,
+			Email:    user.Email,
+			FullName: user.FullName,
+		},
 	})
 }
 
 func Login(c *gin.Context) {
 	var req models.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Status:  "error",
-			Message: "Email and password are required",
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -97,10 +84,7 @@ func Login(c *gin.Context) {
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		c.JSON(http.StatusUnauthorized, models.ErrorResponse{
-			Status:  "error",
-			Message: "Invalid email or password",
-		})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}
 
@@ -121,28 +105,22 @@ func Login(c *gin.Context) {
 		RoleName: role.Name,
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Message: "Login successful",
-		Data:    loginResponse,
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Login successful",
+		"data":    loginResponse,
 	})
 }
 
 func UpdateProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, models.ErrorResponse{
-			Status:  "error",
-			Message: "Unauthorized",
-		})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
 	var req models.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Status:  "error",
-			Message: "Invalid request body",
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -151,24 +129,17 @@ func UpdateProfile(c *gin.Context) {
 	result := config.DB.First(&user, userIdInt)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "User Not Found",
-			})
+			c.JSON(http.StatusNotFound, gin.H{"error": "User Not Found"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": result.Error.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return
 	}
 
 	if req.Email != nil && *req.Email != user.Email {
 		var existingUser models.User
-		result := config.DB.Where("email = ?", *req.Email).First(&existingUser)
-		if result.Error == nil {
-			c.JSON(http.StatusConflict, gin.H{
-				"error": "User with this email already exists",
-			})
+		if err := config.DB.Where("email = ?", *req.Email).First(&existingUser).Error; err == nil {
+			c.JSON(http.StatusConflict, gin.H{"error": "User with this email already exists"})
 			return
 		}
 		user.Email = *req.Email
@@ -180,34 +151,21 @@ func UpdateProfile(c *gin.Context) {
 	if req.Password != nil {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*req.Password), bcrypt.DefaultCost)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-				Status:  "error",
-				Message: "Failed to update profile",
-			})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 			return
 		}
 		user.Password = string(hashedPassword)
 	}
 
-	result = config.DB.Save(&user)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": result.Error.Error(),
-		})
+	if err := config.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	var userProfile models.UserProfile
-	result = config.DB.Where("user_id = ?", userIdInt).First(&userProfile)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			newProfile := models.UserProfile{
-				UserID:      userIdInt,
-				Phone:       "",
-				Address:     "",
-				BirthDate:   "",
-				IsCompleted: false,
-			}
+	if err := config.DB.Where("user_id = ?", userIdInt).First(&userProfile).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			newProfile := models.UserProfile{UserID: userIdInt}
 			if req.Phone != nil {
 				newProfile.Phone = *req.Phone
 			}
@@ -217,17 +175,12 @@ func UpdateProfile(c *gin.Context) {
 			if req.BirthDate != nil {
 				newProfile.BirthDate = *req.BirthDate
 			}
-			result = config.DB.Create(&newProfile)
-			if result.Error != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": result.Error.Error(),
-				})
+			if err := config.DB.Create(&newProfile).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": result.Error.Error(),
-			})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 	} else {
@@ -240,16 +193,11 @@ func UpdateProfile(c *gin.Context) {
 		if req.BirthDate != nil {
 			userProfile.BirthDate = *req.BirthDate
 		}
-		result = config.DB.Save(&userProfile)
-		if result.Error != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": result.Error.Error(),
-			})
+		if err := config.DB.Save(&userProfile).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Profile updated successfully",
-	})
+	c.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully"})
 }

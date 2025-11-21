@@ -12,19 +12,13 @@ import (
 func CreateBooking(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, models.ErrorResponse{
-			Status:  "error",
-			Message: "Unauthorized",
-		})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
 	var req models.CreateBookingRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Status:  "error",
-			Message: "All booking fields are required",
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -86,19 +80,16 @@ func CreateBooking(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Message: "Booking created successfully",
-		Data:    booking,
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Booking created successfully",
+		"data":    booking,
 	})
 }
 
 func GetMyBookings(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, models.ErrorResponse{
-			Status:  "error",
-			Message: "Unauthorized",
-		})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 

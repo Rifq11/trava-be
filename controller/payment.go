@@ -12,10 +12,7 @@ import (
 func InitiatePayment(c *gin.Context) {
 	var req models.CreatePaymentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Status:  "error",
-			Message: "Booking ID and amount are required",
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -48,9 +45,9 @@ func InitiatePayment(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Message: "Payment initiated",
-		Data:    payment,
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Payment initiated",
+		"data":    payment,
 	})
 }
 
@@ -59,9 +56,7 @@ func UpdatePayment(c *gin.Context) {
 	var req models.UpdatePaymentRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -81,17 +76,14 @@ func UpdatePayment(c *gin.Context) {
 	}
 
 	payment.PaymentStatus = req.PaymentStatus
-	result = config.DB.Save(&payment)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": result.Error.Error(),
-		})
+	if err := config.DB.Save(&payment).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Message: "Payment status updated successfully",
-		Data:    payment,
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Payment status updated successfully",
+		"data":    payment,
 	})
 }
 

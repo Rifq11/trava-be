@@ -12,27 +12,18 @@ import (
 func CreateReview(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, models.ErrorResponse{
-			Status:  "error",
-			Message: "Unauthorized",
-		})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
 	var req models.CreateReviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Status:  "error",
-			Message: "Booking ID and rating are required",
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	if req.Rating < 1 || req.Rating > 5 {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Status:  "error",
-			Message: "Rating must be between 1 and 5",
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Rating must be between 1 and 5"})
 		return
 	}
 
@@ -54,10 +45,7 @@ func CreateReview(c *gin.Context) {
 	}
 
 	if booking.UserID != userIdInt {
-		c.JSON(http.StatusForbidden, models.ErrorResponse{
-			Status:  "error",
-			Message: "You can only review your own bookings",
-		})
+		c.JSON(http.StatusForbidden, gin.H{"error": "You can only review your own bookings"})
 		return
 	}
 
@@ -68,17 +56,14 @@ func CreateReview(c *gin.Context) {
 		ReviewText: req.ReviewText,
 	}
 
-	result = config.DB.Create(&review)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": result.Error.Error(),
-		})
+	if err := config.DB.Create(&review).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Message: "Review created successfully",
-		Data:    review,
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Review created successfully",
+		"data":    review,
 	})
 }
 

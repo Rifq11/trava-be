@@ -69,29 +69,21 @@ func GetUserById(c *gin.Context) {
 func CreateUser(c *gin.Context) {
 	var req models.CreateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Status:  "error",
-			Message: "Full name, email, and password are required",
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	var existingUser models.User
 	result := config.DB.Where("email = ?", req.Email).First(&existingUser)
 	if result.Error == nil {
-		c.JSON(http.StatusConflict, gin.H{
-			"error": "User with this email already exists",
-		})
+		c.JSON(http.StatusConflict, gin.H{"error": "User with this email already exists"})
 		return
 	}
 
 	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Status:  "error",
-			Message: "Failed to create user",
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
 	}
 
@@ -109,9 +101,7 @@ func CreateUser(c *gin.Context) {
 
 	result = config.DB.Create(&user)
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": result.Error.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return
 	}
 
@@ -127,9 +117,9 @@ func CreateUser(c *gin.Context) {
 		RoleName: role.Name,
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Message: "User created successfully",
-		Data:    userResponse,
+	c.JSON(http.StatusOK, gin.H{
+		"message": "User created successfully",
+		"data":    userResponse,
 	})
 }
 
@@ -177,10 +167,7 @@ func UpdateUser(c *gin.Context) {
 	if req.Password != nil {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*req.Password), bcrypt.DefaultCost)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-				Status:  "error",
-				Message: "Failed to update user",
-			})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 			return
 		}
 		user.Password = string(hashedPassword)
@@ -191,15 +178,13 @@ func UpdateUser(c *gin.Context) {
 
 	result = config.DB.Save(&user)
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": result.Error.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Message: "User updated successfully",
-		Data:    user,
+	c.JSON(http.StatusOK, gin.H{
+		"message": "User updated successfully",
+		"data":    user,
 	})
 }
 

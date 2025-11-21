@@ -11,19 +11,13 @@ import (
 func LogActivity(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, models.ErrorResponse{
-			Status:  "error",
-			Message: "Unauthorized",
-		})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
 	var req models.LogActivityRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Status:  "error",
-			Message: "Activity type is required",
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -35,17 +29,13 @@ func LogActivity(c *gin.Context) {
 		ActivityType:  req.ActivityType,
 	}
 
-	result := config.DB.Table("user_activity_log").Create(&activityLog)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": result.Error.Error(),
-		})
+	if err := config.DB.Table("user_activity_log").Create(&activityLog).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{
-		Message: "Activity logged successfully",
-		Data:    activityLog,
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Activity logged successfully",
+		"data":    activityLog,
 	})
 }
-

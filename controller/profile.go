@@ -60,10 +60,7 @@ func GetProfile(c *gin.Context) {
 func CompleteProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, models.ErrorResponse{
-			Status:  "error",
-			Message: "Unauthorized",
-		})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
@@ -118,14 +115,10 @@ func CompleteProfile(c *gin.Context) {
 	result := config.DB.First(&user, userIdInt)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "User Not Found",
-			})
+			c.JSON(http.StatusNotFound, gin.H{"error": "User Not Found"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": result.Error.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return
 	}
 
@@ -151,20 +144,13 @@ func CompleteProfile(c *gin.Context) {
 				adminProfile.UserPhoto = *req.UserPhoto
 			}
 			adminProfile.IsCompleted = true
-			result = config.DB.Save(&adminProfile)
-			if result.Error != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": result.Error.Error(),
-				})
+			if err := config.DB.Save(&adminProfile).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
 		} else {
 			newProfile := models.AdminProfile{
 				UserID:      userIdInt,
-				Phone:       "",
-				Address:     "",
-				BirthDate:   "",
-				UserPhoto:   "",
 				IsCompleted: true,
 			}
 			if req.Phone != nil {
@@ -179,11 +165,8 @@ func CompleteProfile(c *gin.Context) {
 			if req.UserPhoto != nil {
 				newProfile.UserPhoto = *req.UserPhoto
 			}
-			result = config.DB.Create(&newProfile)
-			if result.Error != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": result.Error.Error(),
-				})
+			if err := config.DB.Create(&newProfile).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
 		}
@@ -204,20 +187,13 @@ func CompleteProfile(c *gin.Context) {
 				userProfile.UserPhoto = *req.UserPhoto
 			}
 			userProfile.IsCompleted = true
-			result = config.DB.Save(&userProfile)
-			if result.Error != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": result.Error.Error(),
-				})
+			if err := config.DB.Save(&userProfile).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
 		} else {
 			newProfile := models.UserProfile{
 				UserID:      userIdInt,
-				Phone:       "",
-				Address:     "",
-				BirthDate:   "",
-				UserPhoto:   "",
 				IsCompleted: true,
 			}
 			if req.Phone != nil {
@@ -232,17 +208,12 @@ func CompleteProfile(c *gin.Context) {
 			if req.UserPhoto != nil {
 				newProfile.UserPhoto = *req.UserPhoto
 			}
-			result = config.DB.Create(&newProfile)
-			if result.Error != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": result.Error.Error(),
-				})
+			if err := config.DB.Create(&newProfile).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Profile completed successfully",
-	})
+	c.JSON(http.StatusOK, gin.H{"message": "Profile completed successfully"})
 }
