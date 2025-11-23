@@ -15,5 +15,6 @@ func SetupRoutes(app *gin.Engine) {
 		PaymentMethodRoutes(api)
 		ReviewRoutes(api)
 		ActivityRoutes(api)
+		DashboardRoutes(api)
 	}
 }
