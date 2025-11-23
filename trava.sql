@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Nov 23, 2025 at 02:26 AM
+-- Generation Time: Nov 23, 2025 at 02:41 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -264,6 +264,7 @@ CREATE TABLE `transportation` (
   `destination_id` int(11) NOT NULL,
   `transport_type_id` int(11) NOT NULL,
   `price` int(11) NOT NULL,
+  `detail_tranportation` varchar(255) NOT NULL,
   `estimate` varchar(255) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp()
@@ -273,8 +274,8 @@ CREATE TABLE `transportation` (
 -- Dumping data for table `transportation`
 --
 
-INSERT INTO `transportation` (`id`, `destination_id`, `transport_type_id`, `price`, `estimate`, `created_at`, `updated_at`) VALUES
-(1, 5, 1, 235, 'asdasdasd', '2025-11-21 18:29:37', '2025-11-21 18:29:37');
+INSERT INTO `transportation` (`id`, `destination_id`, `transport_type_id`, `price`, `detail_tranportation`, `estimate`, `created_at`, `updated_at`) VALUES
+(1, 5, 1, 235, '', 'asdasdasd', '2025-11-21 18:29:37', '2025-11-21 18:29:37');
 
 -- --------------------------------------------------------
 
