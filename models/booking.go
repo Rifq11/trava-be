@@ -50,18 +50,6 @@ type PaymentMethod struct {
 	Name string `gorm:"type:varchar(255);not null;index" json:"name"`
 }
 
-type Transportation struct {
-	ID              int    `gorm:"primaryKey;autoIncrement" json:"id"`
-	DestinationID   int    `gorm:"not null;index" json:"destination_id"`
-	TransportTypeID int    `gorm:"not null;index" json:"transport_type_id"`
-	Price           int    `gorm:"not null" json:"price"`
-	Estimate        string `gorm:"type:varchar(255)" json:"estimate"`
-}
-
-func (Transportation) TableName() string {
-	return "transportation"
-}
-
 type AdminBookingResponse struct {
 	ID               int    `json:"id"`
 	UserID           int    `json:"user_id"`

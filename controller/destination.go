@@ -60,6 +60,31 @@ func GetDestinationCategories(c *gin.Context) {
 	})
 }
 
+func GetDestinationsWithCategory(c *gin.Context) {
+	var results []models.DestinationWithCategoryResponse
+
+	err := config.DB.Table("destinations").
+		Select(`
+			destinations.id,
+			destinations.name,
+			destinations.description,
+			destinations.location,
+			destinations.price_per_person,
+			destinations.image,
+			destination_categories.name AS category_name
+		`).
+		Joins("LEFT JOIN destination_categories ON destinations.category_id = destination_categories.id").
+		Order("destinations.id DESC").
+		Scan(&results).Error
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": results})
+}
+
 func GetDestinationById(c *gin.Context) {
 	id := c.Param("id")
 	var destination models.Destination

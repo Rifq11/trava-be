@@ -55,3 +55,13 @@ type DestinationCategory struct {
 	ID   int    `gorm:"primaryKey;autoIncrement" json:"id"`
 	Name string `gorm:"type:varchar(255);not null;index" json:"name"`
 }
+
+type DestinationWithCategoryResponse struct {
+	ID             int    `json:"id"`
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	Location       string `json:"location"`
+	PricePerPerson int    `json:"price_per_person"`
+	Image          string `json:"image"`
+	CategoryName   string `json:"category_name"`
+}
