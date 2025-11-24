@@ -140,6 +140,15 @@ func DeleteTransportation(c *gin.Context) {
 		return
 	}
 
+	if err := config.DB.Where(
+		"booking_id IN (SELECT id FROM bookings WHERE transportation_id = ?)", id,
+	).Delete(&models.Review{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete related reviews",
+		})
+		return
+	}
+
 	if err := config.DB.Where("transportation_id = ?", id).Delete(&models.Booking{}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to delete related bookings",
@@ -153,6 +162,6 @@ func DeleteTransportation(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Transportation and related bookings deleted successfully",
+		"message": "Transportation, related bookings, and reviews deleted successfully",
 	})
 }
