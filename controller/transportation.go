@@ -38,7 +38,7 @@ func GetAllAccommodations(c *gin.Context) {
 			transport_types.name AS transport_type_name,
 			transportation.price,
 			transportation.estimate,
-			transportation.detail_transportation
+			transportation.detail_tranportation AS detail_transportation
 		`).
 		Joins("LEFT JOIN transportation ON destinations.id = transportation.destination_id").
 		Joins("LEFT JOIN transport_types ON transportation.transport_type_id = transport_types.id").
@@ -61,11 +61,11 @@ func CreateTransportation(c *gin.Context) {
 	}
 
 	transport := models.Transportation{
-		DestinationID:   req.DestinationID,
-		TransportTypeID: req.TransportTypeID,
-		Price:           req.Price,
-		Estimate:        req.Estimate,
-		Detail:          req.Detail,
+		DestinationID:        req.DestinationID,
+		TransportTypeID:      req.TransportTypeID,
+		Price:                req.Price,
+		Estimate:             req.Estimate,
+		DetailTransportation: req.DetailTransportation,
 	}
 
 	if err := config.DB.Create(&transport).Error; err != nil {
@@ -105,8 +105,8 @@ func UpdateTransportation(c *gin.Context) {
 	if req.Estimate != nil {
 		updates["estimate"] = *req.Estimate
 	}
-	if req.Detail != nil {
-		updates["detail_transportation"] = *req.Detail
+	if req.DetailTransportation != nil {
+		updates["detail_tranportation"] = *req.DetailTransportation
 	}
 
 	if len(updates) == 0 {
