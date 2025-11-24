@@ -140,10 +140,19 @@ func DeleteTransportation(c *gin.Context) {
 		return
 	}
 
+	if err := config.DB.Where("transportation_id = ?", id).Delete(&models.Booking{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete related bookings",
+		})
+		return
+	}
+
 	if err := config.DB.Delete(&transport).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Transportation deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Transportation and related bookings deleted successfully",
+	})
 }
