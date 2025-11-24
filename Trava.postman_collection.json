@@ -260,6 +260,135 @@
       ]
     },
     {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"New User\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password\",\n  \"role_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Updated User\",\n  \"email\": \"updated@example.com\",\n  \"password\": \"newpassword\",\n  \"role_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Destinations",
       "item": [
         {
@@ -280,7 +409,48 @@
                   "key": "category_id",
                   "value": "1",
                   "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "bali",
+                  "disabled": true
                 }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Destination Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/destinations/categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "destinations",
+                "categories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Destinations with Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/destinations/with-category",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "destinations",
+                "with-category"
               ]
             }
           },
@@ -311,43 +481,13 @@
           "response": []
         },
         {
-          "name": "Get Destination Reviews",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/destinations/:id/reviews",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "destinations",
-                ":id",
-                "reviews"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "1"
-                }
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Admin - Destinations",
-      "item": [
-        {
           "name": "Create Destination",
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
+                "value": "Bearer {{user_token}}"
               }
             ],
             "body": {
@@ -401,12 +541,7 @@
           "name": "Update Destination",
           "request": {
             "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
+            "header": [],
             "body": {
               "mode": "formdata",
               "formdata": [
@@ -466,12 +601,7 @@
           "name": "Delete Destination",
           "request": {
             "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
+            "header": [],
             "url": {
               "raw": "{{base_url}}/destinations/:id",
               "host": [
@@ -479,6 +609,246 @@
               ],
               "path": [
                 "destinations",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Transportations",
+      "item": [
+        {
+          "name": "Get Transportations by Destination",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/transportations/destination/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transportations",
+                "destination",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Accommodations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/transportations/all",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transportations",
+                "all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Transportation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destination_id\": 1,\n  \"transport_type_id\": 1,\n  \"price\": 500000,\n  \"estimate\": \"2 hours\",\n  \"detail\": \"Comfortable transportation\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/transportations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transportations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Transportation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 600000,\n  \"estimate\": \"2.5 hours\",\n  \"detail\": \"Updated transportation details\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/transportations/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transportations",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Transportation",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/transportations/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transportations",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Transport Types",
+      "item": [
+        {
+          "name": "Get Transport Types",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/transportations/transport-types",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transportations",
+                "transport-types"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Transport Type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bus\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/transportations/transport-types",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transportations",
+                "transport-types"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Transport Type",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Type\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/transportations/transport-types/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transportations",
+                "transport-types",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Transport Type",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/transportations/transport-types/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transportations",
+                "transport-types",
                 ":id"
               ],
               "variable": [
@@ -548,6 +918,228 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Get Booking by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bookings/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Booking",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bookings/:id/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings",
+                ":id",
+                "cancel"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Booking (POST)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bookings/:id/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings",
+                ":id",
+                "cancel"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Bookings",
+      "item": [
+        {
+          "name": "Get All Bookings (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/bookings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "bookings"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "john",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Booking Detail (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/bookings/:id/detail",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "bookings",
+                ":id",
+                "detail"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Booking",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/bookings/:id/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "bookings",
+                ":id",
+                "approve"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reject Booking",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/bookings/:id/reject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "bookings",
+                ":id",
+                "reject"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -559,10 +1151,6 @@
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{user_token}}"
-              },
               {
                 "key": "Content-Type",
                 "value": "application/json"
@@ -590,10 +1178,6 @@
             "method": "PUT",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{user_token}}"
-              },
-              {
                 "key": "Content-Type",
                 "value": "application/json"
               }
@@ -616,6 +1200,28 @@
                   "key": "id",
                   "value": "1"
                 }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payment Methods",
+      "item": [
+        {
+          "name": "Get Payment Methods",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/payment-methods",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payment-methods"
               ]
             }
           },
@@ -651,6 +1257,61 @@
               ],
               "path": [
                 "reviews"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Destination Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reviews/destination/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reviews",
+                "destination",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Review by Booking ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reviews/booking/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reviews",
+                "booking",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
               ]
             }
           },
@@ -694,10 +1355,10 @@
       ]
     },
     {
-      "name": "Admin",
+      "name": "Dashboard (Admin)",
       "item": [
         {
-          "name": "Get All Bookings",
+          "name": "Get Dashboard Statistics",
           "request": {
             "method": "GET",
             "header": [
@@ -707,22 +1368,21 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/admin/bookings",
+              "raw": "{{base_url}}/dashboard",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
-                "admin",
-                "bookings"
+                "dashboard"
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Approve Booking",
+          "name": "Get Monthly Sales",
           "request": {
-            "method": "POST",
+            "method": "GET",
             "header": [
               {
                 "key": "Authorization",
@@ -730,51 +1390,19 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/admin/bookings/:id/approve",
+              "raw": "{{base_url}}/dashboard/monthly-sales",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
-                "admin",
-                "bookings",
-                ":id",
-                "approve"
+                "dashboard",
+                "monthly-sales"
               ],
-              "variable": [
+              "query": [
                 {
-                  "key": "id",
-                  "value": "1"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Reject Booking",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/admin/bookings/:id/reject",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "admin",
-                "bookings",
-                ":id",
-                "reject"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "1"
+                  "key": "destination_id",
+                  "value": "1",
+                  "disabled": true
                 }
               ]
             }
@@ -784,10 +1412,10 @@
       ]
     },
     {
-      "name": "Users",
+      "name": "Reports (Admin)",
       "item": [
         {
-          "name": "Get All Users",
+          "name": "Get Report Orders",
           "request": {
             "method": "GET",
             "header": [
@@ -797,19 +1425,32 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/users",
+              "raw": "{{base_url}}/reports/orders",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
-                "users"
+                "reports",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "completed",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "john",
+                  "disabled": true
+                }
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Get User by ID",
+          "name": "Get Income Report",
           "request": {
             "method": "GET",
             "header": [
@@ -819,115 +1460,13 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/users/:id",
+              "raw": "{{base_url}}/reports/income",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
-                "users",
-                ":id"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "1"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Create User",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"full_name\": \"New User\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password\",\n  \"role_id\": 2\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/users",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "users"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update User",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"full_name\": \"Updated User\",\n  \"email\": \"updated@example.com\",\n  \"password\": \"newpassword\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/users/:id",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "users",
-                ":id"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "2"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Delete User",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/users/:id",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "users",
-                ":id"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "2"
-                }
+                "reports",
+                "income"
               ]
             }
           },

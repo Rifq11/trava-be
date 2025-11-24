@@ -93,57 +93,154 @@ Aplikasi akan berjalan di `http://localhost:8080`.
 - `POST /api/auth/register` — Register user
   - Requires: `full_name`, `email`, `password`
   - Optional: `role_id` (default: 2 for user, 1 for admin)
-  - Phone number will be filled in complete profile step
+  - Returns: User data with JWT token
 - `POST /api/auth/login` — Login user
+  - Requires: `email`, `password`
+  - Returns: User data with JWT token
 - `PUT /api/auth/profile` — Update own profile (requires auth)
-  - Can update: `full_name`, `email`, `phone`, `address`, `birth_date`, `password`
+  - Supports multipart/form-data for image upload
+  - Can update: `full_name`, `email`, `phone`, `address`, `birth_date`, `password`, `user_photo` (file)
 
 ### Profile
 
 - `GET /api/profile` — Get user profile (requires auth)
+  - Returns: User data with profile information (user_profile or admin_profile)
 - `PUT /api/profile/complete` — Complete/update user profile with photo upload (requires auth)
   - Supports multipart/form-data for image upload
-  - Fields: `user_photo` (file), `phone`, `address`, `birth_date`, `is_admin`
+  - Fields: `user_photo` (file), `phone`, `address`, `birth_date`
+  - Creates or updates user profile
+
+### Users
+
+- `GET /api/users` — Get all users (public)
+  - Returns: Array of all users
+- `GET /api/users/:id` — Get user by ID (public)
+  - Returns: User data
+- `POST /api/users` — Create user (public)
+  - Requires: `full_name`, `email`, `password`
+  - Optional: `role_id` (default: 2)
+- `PUT /api/users/:id` — Update user (public)
+  - Optional fields: `full_name`, `email`, `password`, `role_id`
+- `DELETE /api/users/:id` — Delete user (public)
+  - Note: Cannot delete if user has foreign key references
 
 ### Destinations
 
 - `GET /api/destinations` — List destinations (public)
-  - Query params: `category_id` (optional)
+  - Query params: `category_id` (optional), `search` (optional - searches name and location)
+  - Returns: Array of destinations
+- `GET /api/destinations/categories` — Get destination categories (public)
+  - Returns: Array of destination categories
+- `GET /api/destinations/with-category` — Get destinations with category name (public)
+  - Returns: Array of destinations with category information
 - `GET /api/destinations/:id` — Get destination by ID (public)
+  - Returns: Destination data
 - `POST /api/destinations` — Create destination with image upload (requires auth)
   - Supports multipart/form-data for image upload
-  - Fields: `image` (file), `category_id`, `name`, `description`, `location`, `price_per_person`
-- `PUT /api/destinations/:id` — Update destination with image upload
+  - Requires: `category_id`, `name`, `location`, `price_per_person`
+  - Optional: `description`, `image` (file or URL)
+- `PUT /api/destinations/:id` — Update destination with image upload (public)
   - Supports multipart/form-data for image upload
-  - All fields optional (partial update)
-- `DELETE /api/destinations/:id` — Delete destination
+  - All fields optional (partial update): `category_id`, `name`, `description`, `location`, `price_per_person`, `image` (file or URL)
+- `DELETE /api/destinations/:id` — Delete destination (public)
+
+### Transportations
+
+- `GET /api/transportations/destination/:id` — Get transportations by destination (public)
+  - Returns: Array of transportations for a specific destination
+- `GET /api/transportations/all` — Get all accommodations with transportation details (public)
+  - Returns: Array of destinations with their transportation options
+- `POST /api/transportations` — Create transportation (public)
+  - Requires: `destination_id`, `transport_type_id`, `price`
+  - Optional: `estimate`, `detail`
+- `PUT /api/transportations/:id` — Update transportation (public)
+  - Optional fields: `price`, `estimate`, `detail`
+- `DELETE /api/transportations/:id` — Delete transportation (public)
+
+### Transport Types
+
+- `GET /api/transportations/transport-types` — Get transport types (public)
+  - Returns: Array of transport types
+- `POST /api/transportations/transport-types` — Create transport type (public)
+  - Requires: `name`
+- `PUT /api/transportations/transport-types/:id` — Update transport type (public)
+  - Requires: `name`
+- `DELETE /api/transportations/transport-types/:id` — Delete transport type (public)
 
 ### Bookings
 
 - `POST /api/bookings` — Create booking (requires auth)
+  - Requires: `destination_id`, `transportation_id`, `payment_method_id`, `people_count`, `start_date`, `end_date`
+  - Automatically calculates: `destination_price`, `transport_price`, `total_price`
+  - Default status: `pending` (status_id: 1)
 - `GET /api/bookings/my` — Get my bookings (requires auth)
+  - Returns: Array of user's bookings with destination, status, and payment method info
+  - Auto-updates completed bookings based on end_date
+- `GET /api/bookings/:id` — Get booking by ID (requires auth)
+  - Returns: Booking data
+- `PUT /api/bookings/:id/cancel` — Cancel booking (requires auth)
+  - Only user can cancel their own booking
+  - Updates status to "canceled"
+- `POST /api/bookings/:id/cancel` — Cancel booking (alternative method, requires auth)
+
+### Admin - Bookings
+
+- `GET /api/admin/bookings` — Get all bookings for admin (requires admin)
+  - Query params: `status` (optional - filter by status), `search` (optional - searches user name, destination name, or booking ID)
+  - Returns: Array of bookings with user and destination details
+- `GET /api/admin/bookings/:id/detail` — Get booking detail for admin (requires admin)
+  - Returns: Detailed booking information including transport type and destination image
+  - Includes booking code in format: TRV-{id}
+- `PUT /api/admin/bookings/:id/approve` — Approve booking (requires admin)
+  - Updates booking status to "approved"
+- `PUT /api/admin/bookings/:id/reject` — Reject booking (requires admin)
+  - Updates booking status to "rejected"
 
 ### Payments
 
-- `POST /api/payments` — Initiate payment
-- `PUT /api/payments/:id` — Update payment status
+- `POST /api/payments` — Initiate payment (public)
+  - Requires: `booking_id`, `amount`
+  - Creates payment with status: "pending"
+- `PUT /api/payments/:id` — Update payment status (public)
+  - Requires: `payment_status`
+  - Updates payment status (e.g., "paid", "pending", "failed")
+
+### Payment Methods
+
+- `GET /api/payment-methods` — Get payment methods (public)
+  - Returns: Array of available payment methods
 
 ### Reviews
 
 - `POST /api/reviews` — Create review (requires auth)
-- `GET /api/reviews/destination/:id` — Get reviews by destination
+  - Requires: `booking_id`, `rating` (1-5), `review_text`
+  - Only user can review their own bookings
+- `GET /api/reviews/destination/:id` — Get reviews by destination (public)
+  - Returns: Array of reviews for a destination with user names
+- `GET /api/reviews/booking/:id` — Get review by booking ID (requires auth)
+  - Returns: Review data if exists, or null
 
 ### Activity
 
 - `POST /api/activity` — Log user activity (requires auth)
+  - Requires: `destination_id`, `activity_type`
+  - Logs user activity in user_activity_log table
 
-### Users
+### Dashboard (Admin)
 
-- `GET /api/users` — Get all users
-- `GET /api/users/:id` — Get user by ID
-- `POST /api/users` — Create user
-- `PUT /api/users/:id` — Update user
-- `DELETE /api/users/:id` — Delete user
+- `GET /api/dashboard` — Get dashboard statistics (requires admin)
+  - Returns: Total destinations, total active orders, total registered users
+- `GET /api/dashboard/monthly-sales` — Get monthly sales (requires admin)
+  - Query params: `destination_id` (optional - filter by destination)
+  - Returns: Monthly revenue grouped by month
+
+### Reports (Admin)
+
+- `GET /api/reports/orders` — Get report orders (requires admin)
+  - Query params: `status` (optional - filter by status), `search` (optional - searches user name, destination name, or booking ID)
+  - Returns: Array of booking reports with status information
+- `GET /api/reports/income` — Get income report (requires admin)
+  - Returns: Total income from completed bookings (status_id: 5)
 
 ---
 
@@ -615,14 +712,19 @@ Trava-be/
 ├── config/
 │   └── config.go          # Database connection
 ├── controller/
-│   ├── auth.go            # Auth controller
-│   ├── booking.go         # Booking controller
-│   ├── destination.go     # Destination controller
-│   ├── payment.go         # Payment controller
-│   ├── profile.go         # Profile controller
-│   ├── review.go          # Review controller
-│   ├── user.go            # User controller
-│   └── activity.go        # Activity controller
+│   ├── auth.go                # Auth controller
+│   ├── booking.go             # Booking controller
+│   ├── dashboard_admin.go     # Dashboard admin controller
+│   ├── destination.go         # Destination controller
+│   ├── payment.go             # Payment controller
+│   ├── payment_method.go      # Payment method controller
+│   ├── profile.go             # Profile controller
+│   ├── report.go              # Report controller
+│   ├── review.go              # Review controller
+│   ├── transportation.go      # Transportation controller
+│   ├── transportation_type.go # Transportation type controller
+│   ├── user.go                # User controller
+│   └── activity.go            # Activity controller
 ├── helper/
 │   └── upload.go          # File upload utilities
 ├── middleware/
@@ -640,10 +742,14 @@ Trava-be/
 ├── routes/
 │   ├── auth.go            # Auth routes
 │   ├── booking.go         # Booking routes
+│   ├── dashboard.go       # Dashboard routes
 │   ├── destination.go     # Destination routes
 │   ├── payment.go         # Payment routes
+│   ├── payment_method.go  # Payment method routes
 │   ├── profile.go         # Profile routes
+│   ├── report.go          # Report routes
 │   ├── review.go          # Review routes
+│   ├── transportation.go  # Transportation routes
 │   ├── user.go            # User routes
 │   ├── activity.go        # Activity routes
 │   └── routes.go          # Main routes setup
@@ -794,6 +900,9 @@ curl -X POST http://localhost:8080/api/destinations \
 - File yang di-upload akan disimpan dengan nama unik untuk menghindari konflik
 - URL lengkap (contoh: `/uploads/filename.jpg`) disimpan di database, bukan hanya filename
 - File dapat diakses langsung melalui URL: `http://localhost:8080/uploads/filename.jpg`
+- Authentication menggunakan JWT Bearer token atau header `x-user-id` / `user-id`
+- Booking status akan otomatis diupdate ke "completed" jika end_date sudah lewat (untuk bookings dengan status pending atau approved)
+- Booking code format untuk admin: TRV-{id} (contoh: TRV-001, TRV-123)
 
 ---
 
