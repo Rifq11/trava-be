@@ -6,7 +6,7 @@ type Transportation struct {
 	TransportTypeID      int    `gorm:"not null;index" json:"transport_type_id"`
 	Price                int    `gorm:"not null" json:"price"`
 	Estimate             string `gorm:"type:varchar(255)" json:"estimate"`
-	DetailTransportation string `gorm:"column:detail_tranportation;type:varchar(255)" json:"detail_transportation"`
+	DetailTransportation string `gorm:"type:varchar(255)" json:"detail_transportation"`
 }
 
 func (Transportation) TableName() string {
