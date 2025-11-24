@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Nov 23, 2025 at 02:41 PM
+-- Generation Time: Nov 24, 2025 at 05:50 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -77,7 +77,9 @@ INSERT INTO `bookings` (`id`, `user_id`, `destination_id`, `transportation_id`, 
 (1, 9, 5, 1, 3, 3, 12, '2025-11-21 12:29:47', '2025-11-21 12:29:47', 123123, 123123, 123213213, '2025-11-21 18:30:11', '2025-11-21 18:30:11'),
 (3, 11, 5, 1, 3, 5, 3, '2025-11-22 07:00:00', '2025-11-22 08:00:00', 235, 1500000, 1500235, '2025-11-22 23:37:35', '2025-11-22 23:37:35'),
 (10, 14, 5, 1, 1, 4, 6, '2025-11-23 07:00:00', '2025-11-24 07:00:00', 235, 3000000, 3000235, '2025-11-23 01:05:49', '2025-11-23 01:05:49'),
-(11, 14, 5, 1, 1, 1, 1, '2025-11-23 07:00:00', '2025-11-24 07:00:00', 235, 500000, 500235, '2025-11-23 01:21:33', '2025-11-23 01:21:33');
+(11, 14, 5, 1, 1, 1, 1, '2025-11-23 07:00:00', '2025-11-24 07:00:00', 235, 500000, 500235, '2025-11-23 01:21:33', '2025-11-23 01:21:33'),
+(12, 17, 5, 1, 3, 5, 1, '2025-11-24 07:00:00', '2025-11-24 07:00:00', 235, 500000, 500235, '2025-11-24 10:39:49', '2025-11-24 10:39:49'),
+(13, 18, 5, 4, 3, 5, 3, '2025-11-24 07:00:00', '2025-11-25 07:00:00', 500000, 1500000, 2000000, '2025-11-24 11:08:24', '2025-11-24 11:08:24');
 
 -- --------------------------------------------------------
 
@@ -127,12 +129,10 @@ CREATE TABLE `destinations` (
 --
 
 INSERT INTO `destinations` (`id`, `category_id`, `created_by`, `name`, `description`, `location`, `price_per_person`, `image`, `created_at`, `updated_at`) VALUES
-(5, 1, 1, 'Beautiful Beach', 'A beautiful beach destination', 'Bali, Indonesia', 500000, '/uploads/134560386_p4_master1200-1763690463870747906-238966758.jpg', '2025-11-21 09:01:03', '2025-11-21 09:01:03'),
-(14, 3, 1, 'Updated Beach', 'Updated description', 'Bali, Indonesia', 600000, '/uploads/family_card-1763830771770997439-923798235.jpg', '2025-11-22 22:38:33', '2025-11-22 22:38:33'),
-(15, 3, 1, 'Updated Beach', 'Updated description', 'Bali, Indonesia', 600000, '/uploads/family_card-1763830773686987695-912992250.jpg', '2025-11-22 22:59:45', '2025-11-22 22:59:45'),
-(16, 3, 1, 'Updated Beach', 'Updated description', 'Bali, Indonesia', 600000, '/uploads/family_card-1763830775263304291-918171010.jpg', '2025-11-22 22:59:47', '2025-11-22 22:59:47'),
-(17, 3, 1, 'Updated Beach', 'Updated description', 'Bali, Indonesia', 600000, '/uploads/family_card-1763830776612280372-897138437.jpg', '2025-11-22 22:59:49', '2025-11-22 22:59:49'),
-(18, 3, 1, 'Updated Beach', 'Updated description', 'Bali, Indonesia', 600000, '/uploads/family_card-1763830778089986846-34926329.jpg', '2025-11-22 22:59:51', '2025-11-22 22:59:51');
+(5, 1, 1, 'Beautiful Beach', 'A beautiful beach destination', 'Bali, Indonesia', 500000, '/uploads/image 2 (2)-1763955789727637219-829935995.png', '2025-11-21 09:01:03', '2025-11-21 09:01:03'),
+(19, 1, 1, 'Beautiful Beach', 'tejsahdkjsahdkjsahkjdsa', 'Bali, Indonesia', 500000, '/uploads/image 3-1763955741271300902-398712689.png', '2025-11-24 10:42:21', '2025-11-24 10:42:21'),
+(20, 3, 1, 'Forest', 'tejsahdkjsahdkjsahkjdsa', 'Bali, Indonesia', 500000, '/uploads/image 2 (2)-1763955789727637219-829935995.png', '2025-11-24 10:43:09', '2025-11-24 10:43:09'),
+(21, 3, 1, 'City', 'jalan jalan', 'Maluku, Indonesia', 100000, '/uploads/image 2 (1)-1763955923947573336-68716532.png', '2025-11-24 10:45:23', '2025-11-24 10:45:23');
 
 -- --------------------------------------------------------
 
@@ -181,7 +181,9 @@ CREATE TABLE `payments` (
 INSERT INTO `payments` (`id`, `booking_id`, `amount`, `payment_status`, `created_at`, `updated_at`) VALUES
 (2, 3, 1500235, 'success', '2025-11-22 23:37:35', '2025-11-22 23:37:35'),
 (3, 10, 3000235, 'success', '2025-11-23 01:05:49', '2025-11-23 01:05:49'),
-(4, 11, 500235, 'success', '2025-11-23 01:21:33', '2025-11-23 01:21:33');
+(4, 11, 500235, 'success', '2025-11-23 01:21:33', '2025-11-23 01:21:33'),
+(5, 12, 500235, 'success', '2025-11-24 10:39:49', '2025-11-24 10:39:49'),
+(6, 13, 2000000, 'success', '2025-11-24 11:08:24', '2025-11-24 11:08:24');
 
 -- --------------------------------------------------------
 
@@ -229,7 +231,10 @@ CREATE TABLE `reviews` (
 
 INSERT INTO `reviews` (`id`, `booking_id`, `user_id`, `rating`, `review_text`, `created_at`, `updated_at`) VALUES
 (1, 1, 9, 5, 'sadsadsadasdads', '2025-11-21 18:30:35', '2025-11-21 18:30:35'),
-(2, 3, 11, 3, '', '2025-11-23 00:38:16', '2025-11-23 00:38:16');
+(2, 3, 11, 3, '', '2025-11-23 00:38:16', '2025-11-23 00:38:16'),
+(3, 12, 17, 3, 'bagus', '2025-11-24 10:50:10', '2025-11-24 10:50:10'),
+(4, 12, 17, 3, 'bagus', '2025-11-24 10:51:13', '2025-11-24 10:51:13'),
+(5, 13, 18, 4, 'gstt', '2025-11-24 11:09:36', '2025-11-24 11:09:36');
 
 -- --------------------------------------------------------
 
@@ -264,7 +269,7 @@ CREATE TABLE `transportation` (
   `destination_id` int(11) NOT NULL,
   `transport_type_id` int(11) NOT NULL,
   `price` int(11) NOT NULL,
-  `detail_tranportation` varchar(255) NOT NULL,
+  `detail_transportation` varchar(255) NOT NULL,
   `estimate` varchar(255) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp()
@@ -274,8 +279,12 @@ CREATE TABLE `transportation` (
 -- Dumping data for table `transportation`
 --
 
-INSERT INTO `transportation` (`id`, `destination_id`, `transport_type_id`, `price`, `detail_tranportation`, `estimate`, `created_at`, `updated_at`) VALUES
-(1, 5, 1, 235, '', 'asdasdasd', '2025-11-21 18:29:37', '2025-11-21 18:29:37');
+INSERT INTO `transportation` (`id`, `destination_id`, `transport_type_id`, `price`, `detail_transportation`, `estimate`, `created_at`, `updated_at`) VALUES
+(1, 5, 1, 235, '', 'asdasdasd', '2025-11-21 18:29:37', '2025-11-21 18:29:37'),
+(4, 5, 3, 500000, 'Comfortable transportation', '3 hours', '2025-11-24 10:46:58', '2025-11-24 10:46:58'),
+(5, 5, 4, 1000000, 'Comfortable transportation', '4 hours', '2025-11-24 10:47:09', '2025-11-24 10:47:09'),
+(6, 5, 5, 1000000, 'Comfortable transportation', '1 hours', '2025-11-24 10:47:14', '2025-11-24 10:47:14'),
+(7, 5, 5, 1000000, 'Comfortable transportation', '1 hours', '2025-11-24 11:17:51', '2025-11-24 11:17:51');
 
 -- --------------------------------------------------------
 
@@ -330,7 +339,9 @@ INSERT INTO `users` (`id`, `role_id`, `full_name`, `email`, `password`, `created
 (13, 2, 'a', 'a@a.a', '$2a$10$dnYu.bLYP6YzkFq5ZT4xmukllD5T4W2ygmKdkZjeRWoOw/HPrtiKe', '2025-11-22 14:16:33', '2025-11-22 14:32:21'),
 (14, 2, 'b', 'b@b.b', '$2a$10$h1FrY1Ha.H5bxSTLznCV1.ZzQPnYAFMU44kNoAPF08TNYrBhO/.2S', '2025-11-22 17:47:07', '2025-11-22 18:38:01'),
 (15, 2, 'f', 'f@f.f', '$2a$10$biz5KeWHQWUPbYjCgwGmvuaeVrAe3rCCPG.PJPgwZ7EOKveIuuRmW', '2025-11-22 18:38:54', '2025-11-22 18:44:00'),
-(16, 2, 'r', 'r@r.r', '$2a$10$hIbzOHMMc7vy456.d56W5O9g089EaTQ.NAyG.CAvgx/9b0cq0liBK', '2025-11-22 18:44:21', '2025-11-22 19:15:40');
+(16, 2, 'r', 'r@r.r', '$2a$10$hIbzOHMMc7vy456.d56W5O9g089EaTQ.NAyG.CAvgx/9b0cq0liBK', '2025-11-22 18:44:21', '2025-11-24 06:41:05'),
+(17, 2, 'riel', 'riel@gmail.com', '$2a$10$IzmYU3LFDQvsze2WxoAzhOMsGjiFUV2IvtlchwNdis56/JuwpROtO', '2025-11-24 10:37:18', '2025-11-24 10:37:18'),
+(18, 2, 'rifqi', 'rifqi@example.com', '$2a$10$T1elWPQqSCx5OlSk1HVfsOOx7yQCI5Qcaw7b22bfx8RXRkPf06LIS', '2025-11-24 11:06:16', '2025-11-24 04:45:13');
 
 -- --------------------------------------------------------
 
@@ -375,7 +386,9 @@ INSERT INTO `user_profiles` (`id`, `user_id`, `phone`, `address`, `birth_date`, 
 (3, 11, '8483884', 'ndjd', '2007-11-30', '/uploads/1000068020-1763831944861751272-24240214.jpg', 1, '2025-11-22 21:33:02', '2025-11-22 21:33:02'),
 (4, 14, '56889595', 'ncnc', '2007-11-28', '/uploads/1000067996-1763835751369822524-915991829.jpg', 1, '2025-11-23 00:53:17', '2025-11-23 00:53:17'),
 (5, 15, '5656', 'djdjdjd', '2007-11-28', '/uploads/1000067996-1763836778742634712-214111679.jpg', 1, '2025-11-23 01:39:38', '2025-11-23 01:39:38'),
-(8, 16, '65655', 'hfbf', '2007-11-28', '/uploads/1000068018-1763838940465095928-412471012.jpg', 1, '2025-11-23 02:15:11', '2025-11-23 02:15:11');
+(8, 16, '65655', 'hfbf', '2007-11-27', '/uploads/1000067996-1763941265487415704-142053253.jpg', 1, '2025-11-23 02:15:11', '2025-11-23 02:15:11'),
+(9, 17, '12345678', 'jl mana kek', '2007-11-29', '/uploads/a0527dfb-0cbe-4cf0-a116-542490737a2f1742441516737442881-1763955488842355606-941718712.jpg', 1, '2025-11-24 10:38:08', '2025-11-24 10:38:08'),
+(10, 18, '864656595', 'fjsjd', '2007-11-29', '/uploads/1000068166-1763959513437838658-44684267.jpg', 1, '2025-11-24 11:06:59', '2025-11-24 11:06:59');
 
 --
 -- Indexes for dumped tables
@@ -504,7 +517,7 @@ ALTER TABLE `admin_profiles`
 -- AUTO_INCREMENT for table `bookings`
 --
 ALTER TABLE `bookings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `booking_status`
@@ -516,7 +529,7 @@ ALTER TABLE `booking_status`
 -- AUTO_INCREMENT for table `destinations`
 --
 ALTER TABLE `destinations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `destination_categories`
@@ -528,7 +541,7 @@ ALTER TABLE `destination_categories`
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `payment_methods`
@@ -540,7 +553,7 @@ ALTER TABLE `payment_methods`
 -- AUTO_INCREMENT for table `reviews`
 --
 ALTER TABLE `reviews`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -552,7 +565,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `transportation`
 --
 ALTER TABLE `transportation`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `transport_types`
@@ -564,7 +577,7 @@ ALTER TABLE `transport_types`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `user_activity_log`
@@ -576,7 +589,7 @@ ALTER TABLE `user_activity_log`
 -- AUTO_INCREMENT for table `user_profiles`
 --
 ALTER TABLE `user_profiles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- Constraints for dumped tables

@@ -267,15 +267,91 @@ func DeleteDestination(c *gin.Context) {
 		return
 	}
 
-	result = config.DB.Delete(&destination)
-	if result.Error != nil {
+	destinationIDInt, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid destination ID",
+		})
+		return
+	}
+
+	tx := config.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	var bookingIDs []int
+	if err := tx.Table("bookings").
+		Where("destination_id = ?", destinationIDInt).
+		Pluck("id", &bookingIDs).Error; err != nil {
+		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": result.Error.Error(),
+			"error": "Failed to get bookings: " + err.Error(),
+		})
+		return
+	}
+
+	if len(bookingIDs) > 0 {
+		if err := tx.Table("reviews").Where("booking_id IN ?", bookingIDs).Delete(nil).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to delete reviews: " + err.Error(),
+			})
+			return
+		}
+
+		if err := tx.Table("payments").Where("booking_id IN ?", bookingIDs).Delete(nil).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to delete payments: " + err.Error(),
+			})
+			return
+		}
+
+		if err := tx.Table("bookings").Where("destination_id = ?", destinationIDInt).Delete(nil).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to delete bookings: " + err.Error(),
+			})
+			return
+		}
+	}
+
+	if err := tx.Table("transportation").Where("destination_id = ?", destinationIDInt).Delete(nil).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete transportation: " + err.Error(),
+		})
+		return
+	}
+
+	if err := tx.Table("user_activity_log").Where("destination_id = ?", destinationIDInt).Delete(nil).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete activity logs: " + err.Error(),
+		})
+		return
+	}
+
+	if err := tx.Delete(&destination).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete destination: " + err.Error(),
+		})
+		return
+	}
+
+	// Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to commit transaction: " + err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Destination deleted successfully",
+		"message": "Destination and all related data deleted successfully",
 	})
 }
